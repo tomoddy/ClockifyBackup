@@ -1,4 +1,5 @@
-﻿using RestSharp;
+﻿using Newtonsoft.Json;
+using RestSharp;
 using System;
 using System.Configuration;
 
@@ -16,9 +17,21 @@ namespace ClockifyBackup
 
             RestRequest request = new RestRequest(Method.POST);
 
+            RequestBodyObj requestBody = new RequestBodyObj
+            {
+                StartDate = new DateTime(2021, 1, 1, 0, 0, 0),
+                EndDate = new DateTime(2021, 1, 5, 23, 23, 59),
+                DetailedFilter = new RequestBodyObj.DetailedFilterObj
+                {
+                    Page = 1,
+                    PageSize = 50
+                },
+                ExportType = "JSON"
+            };
+
             request.AddHeader("Content-Type", "application/json");
             request.AddHeader("x-api-key", ConfigurationManager.AppSettings.Get("ApiKey"));
-            request.AddParameter("application/json", "{\r\n  \"dateRangeStart\": \"2021-01-01T00:00:00.000\",\r\n  \"dateRangeEnd\": \"2021-01-05T23:59:59.000\",\r\n  \"detailedFilter\": {\r\n    \"page\": 1,\r\n    \"pageSize\": 50\r\n  },\r\n  \"exportType\": \"JSON\"\r\n}", ParameterType.RequestBody);
+            request.AddParameter("application/json", JsonConvert.SerializeObject(requestBody), ParameterType.RequestBody);
 
             IRestResponse response = client.Execute(request);
             Console.WriteLine(response.Content);
