@@ -2,4 +2,6 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/ClockifyBackup/.vs/ClockifyBackup/v16/.suo
+/ClockifyBackup/.vs
+/ClockifyBackup/ClockifyBackup/bin
+/ClockifyBackup/ClockifyBackup/obj
