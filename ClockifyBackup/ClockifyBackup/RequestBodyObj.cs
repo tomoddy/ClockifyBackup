@@ -27,5 +27,13 @@ namespace ClockifyBackup
             [JsonProperty("pageSize")]
             public int PageSize { get; set; }
         }
+
+        public RequestBodyObj(DateTime startDate, DateTime endDate, string exportType)
+        {
+            StartDate = startDate;
+            EndDate = endDate;
+            DetailedFilter = new DetailedFilterObj { Page = 1, PageSize = 50 };
+            ExportType = exportType;
+        }
     }
 }

@@ -1,40 +1,30 @@
-﻿using Newtonsoft.Json;
-using RestSharp;
-using System;
-using System.Configuration;
+﻿using System;
+using System.IO;
 
 namespace ClockifyBackup
 {
     class Program
     {
+        const int ARGS_LENGTH = 4;
+
         static void Main(string[] args)
         {
-            string workspaceId = ConfigurationManager.AppSettings.Get("WorkspaceId");
-            RestClient client = new RestClient($"https://reports.api.clockify.me/v1/workspaces/{workspaceId}/reports/detailed")
+            if (args.Length != ARGS_LENGTH)
             {
-                Timeout = -1
-            };
-
-            RestRequest request = new RestRequest(Method.POST);
-
-            RequestBodyObj requestBody = new RequestBodyObj
+                Console.WriteLine($"Expected {ARGS_LENGTH} arguments, got {args.Length}");
+            }
+            else
             {
-                StartDate = new DateTime(2021, 1, 1, 0, 0, 0),
-                EndDate = new DateTime(2021, 1, 5, 23, 23, 59),
-                DetailedFilter = new RequestBodyObj.DetailedFilterObj
+                string args0 = Path.GetDirectoryName(args[0]);
+                bool args2 = int.TryParse(args[2], out int exportType);
+                bool args3 = int.TryParse(args[3], out int dateRange);
+
+                if (!string.IsNullOrEmpty(args0) && args2 && args3)
                 {
-                    Page = 1,
-                    PageSize = 50
-                },
-                ExportType = "JSON"
-            };
-
-            request.AddHeader("Content-Type", "application/json");
-            request.AddHeader("x-api-key", ConfigurationManager.AppSettings.Get("ApiKey"));
-            request.AddParameter("application/json", JsonConvert.SerializeObject(requestBody), ParameterType.RequestBody);
-
-            IRestResponse response = client.Execute(request);
-            Console.WriteLine(response.Content);
+                    Client client = new Client(args[0], args[1], exportType);
+                    client.Request(DateTime.Now.AddDays(-dateRange), DateTime.Now);
+                }
+            }
         }
     }
 }
