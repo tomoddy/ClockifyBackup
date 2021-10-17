@@ -70,8 +70,8 @@ namespace ClockifyBackup
             // Write result to file
             logger.Add("Writing to file");
             string exportName = $"{ExportName}{DateTime.Now.ToString($"-yyyy-MM-dd-HH-mm-ss")}";
-            Directory.CreateDirectory($"{ExportPath}/{exportName}");
-            File.WriteAllBytes($"{ExportPath}/{exportName}/{exportName}.{ExportType.ToString().ToLower()}", response.RawBytes);
+            Directory.CreateDirectory(ExportPath);
+            File.WriteAllBytes($"{ExportPath}/{exportName}.{ExportType.ToString().ToLower()}", response.RawBytes);
             logger.Add("Backup created and saved");
         }
     }

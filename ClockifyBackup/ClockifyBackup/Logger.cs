@@ -24,7 +24,7 @@ namespace ClockifyBackup
         /// </summary>
         public Logger()
         {
-            Path = $"{Config.LogOutput}/ClockifyBackup-{DateTime.UtcNow:yyyy-MM-dd-HH-mm-ss}.log";
+            Path = $"{Config.LogOutput}/ClockifyBackup-{DateTime.UtcNow:yyyy-MM-dd}.log";
             Messages = new List<string>
             {
                 "---------------------------------------------",
