@@ -11,55 +11,64 @@ namespace ClockifyBackup
         /// <summary>
         /// Main method
         /// </summary>
-        /// <param name="args">Comand line arguments</param>
-        static void Main(string[] args)
+        /// <param name="args">
+        /// 0 - Output path
+        /// 1 - Export name
+        /// 2 - Export type
+        /// 3 - Date range (days)
+        /// </param>
+        /// <returns>
+        /// 0 - Success
+        /// -1 - Failure
+        /// -2 - Missing arguments
+        /// -3 - Invalud arguments
+        /// </returns>
+        static int Main(string[] args)
         {
-            // Create log directory variable
-            string args1 = null;
+            // Create variables
+            Logger logger = new Logger();
+            int retVal = 0;
             try
             {
-
-                if (args.Length != 5)
+                if (args.Length != 4)
+                {
                     // Invalid number of arguments
-                    Console.WriteLine($"Expected 4 arguments, got {args.Length}");
+                    logger.Add($"Expected 4 arguments, got {args.Length}");
+                    retVal = -2;
+                }
                 else
                 {
                     // Get argument check values
-                    string args0 = Path.GetFullPath(args[0]);
-                    args1 = Path.GetFullPath(args[1]);
-                    bool args3 = int.TryParse(args[3], out int exportType);
-                    bool args4 = int.TryParse(args[4], out int dateRange);
-
-                    // Create directories
-                    Directory.CreateDirectory(args0);
-                    Directory.CreateDirectory(args1);
+                    string exportPath = Path.GetFullPath(args[0]);
+                    string exportName = args[1];
+                    bool exportTypeFlag = int.TryParse(args[2], out int exportType);
+                    bool dateRangeFlag = int.TryParse(args[3], out int dateRange);
 
                     // Check argument values
-                    if (!string.IsNullOrEmpty(args0) && !string.IsNullOrEmpty(args1) && args3 && args4 && exportType >= 0 && exportType < 3)
+                    if (!string.IsNullOrEmpty(exportPath) && exportTypeFlag && dateRangeFlag && exportType >= 0 && exportType < 3)
                     {
                         // Create client and make request
-                        Client client = new Client(args[0], args[2], exportType);
-                        client.Request(DateTime.Now.AddDays(-dateRange), DateTime.Now);
+                        Client client = new Client(exportPath, exportName, exportType);
+                        client.Request(logger, DateTime.Now.AddDays(-dateRange), DateTime.Now);
                     }
                     else
+                    {
                         // Print error message
-                        Console.WriteLine("Invalid arguments");
+                        logger.Add("Invalid arguments");
+                        retVal = -3;
+                    }
                 }
-
-                // Print success message
-                Console.WriteLine("SUCCESS");
             }
             catch (Exception ex)
             {
                 // Log error
-                Console.WriteLine(ex);
-
-                // Write to log file
-                if (args1 != null)
-                    File.AppendAllText($"{args1}/clockify-backup-log{ DateTime.Now.ToString($"-yyyy-MM-dd")}.txt", ex.ToString());
-                else
-                    Console.WriteLine("Could not log error");
+                retVal = -1;
+                logger.Add(ex.Message);
             }
+
+            // Save logs and output response code
+            logger.Save();
+            return retVal;
         }
     }
 }

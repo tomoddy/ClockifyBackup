@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using RestSharp;
 using System;
-using System.Configuration;
 using System.IO;
 
 namespace ClockifyBackup
@@ -11,19 +10,25 @@ namespace ClockifyBackup
     /// </summary>
     class Client
     {
-        // Enums
-        public enum ExportTypes
-        {
-            JSON,
-            CSV,
-            XLSX
-        }
 
-        // Properties
-        public string ApiKey { get; set; }
+        /// <summary>
+        /// Rest client
+        /// </summary>
         public RestClient RestClient { get; set; }
+
+        /// <summary>
+        /// Export path
+        /// </summary>
         public string ExportPath { get; set; }
+
+        /// <summary>
+        /// Export name
+        /// </summary>
         public string ExportName { get; set; }
+
+        /// <summary>
+        /// Export type
+        /// </summary>
         public ExportTypes ExportType { get; set; }
 
         /// <summary>
@@ -34,8 +39,7 @@ namespace ClockifyBackup
         /// <param name="type">Output file type</param>
         public Client(string path, string name, int type)
         {
-            ApiKey = ConfigurationManager.AppSettings.Get("ApiKey");
-            RestClient = new RestClient($"https://reports.api.clockify.me/v1/workspaces/{ConfigurationManager.AppSettings.Get("WorkspaceId")}/reports/detailed") { Timeout = -1 };
+            RestClient = new RestClient($"https://reports.api.clockify.me/v1/workspaces/{Config.WorkspaceId}/reports/detailed") { Timeout = -1 };
             ExportPath = path;
             ExportName = name;
             ExportType = (ExportTypes)type;
@@ -46,26 +50,29 @@ namespace ClockifyBackup
         /// </summary>
         /// <param name="startDate">Start date</param>
         /// <param name="endDate">End date</param>
-        public void Request(DateTime startDate, DateTime endDate)
+        public void Request(Logger logger, DateTime startDate, DateTime endDate)
         {
             // Create request body
-            Console.WriteLine("Creating request body");
+            logger.Add("Creating request body");
             RequestBodyObj requestBody = new RequestBodyObj(startDate, endDate, ExportType.ToString());
 
             // Create requst
-            Console.WriteLine("Creating request");
+            logger.Add("Creating request");
             RestRequest request = new RestRequest(Method.POST);
             request.AddHeader("Content-Type", "application/json");
-            request.AddHeader("x-api-key", ApiKey);
+            request.AddHeader("x-api-key", Config.ApiKey);
             request.AddParameter("application/json", JsonConvert.SerializeObject(requestBody), ParameterType.RequestBody);
 
             // Execute request
-            Console.WriteLine("Executing request");
+            logger.Add("Executing request");
             IRestResponse response = RestClient.Execute(request);
 
             // Write result to file
-            Console.WriteLine("Writing to file");
-            File.WriteAllBytes($"{ExportPath}/{ExportName}{DateTime.Now.ToString($"-yyyy-MM-dd-HH-mm-ss")}.{ExportType.ToString().ToLower()}", response.RawBytes);
+            logger.Add("Writing to file");
+            string exportName = $"{ExportName}{DateTime.Now.ToString($"-yyyy-MM-dd-HH-mm-ss")}";
+            Directory.CreateDirectory($"{ExportPath}/{exportName}");
+            File.WriteAllBytes($"{ExportPath}/{exportName}/{exportName}.{ExportType.ToString().ToLower()}", response.RawBytes);
+            logger.Add("Backup created and saved");
         }
     }
 }
